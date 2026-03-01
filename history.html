@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金融早报历史 - OpenClaw</title>
+    <meta property="og:title" content="金融早报历史">
+    <meta property="og:description" content="查看所有历史金融早报">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .content {
+            padding: 40px;
+        }
+        .search-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .search-box h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        .search-box .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .search-box .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        .search-box input,
+        .search-box select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .search-box button {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        .search-box button:hover {
+            background: #5568d3;
+        }
+        .news-list {
+            display: grid;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .news-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        .news-item .date {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .news-item .period {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .news-item .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .news-item .stat {
+            font-size: 14px;
+            color: #555;
+        }
+        .news-item .stat span {
+            font-weight: bold;
+            color: #333;
+        }
+        .news-item .view-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .news-item .view-btn:hover {
+            background: #5568d3;
+        }
+        .stats-bar {
+            background: #f0f0f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .stats-bar h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .stats-bar .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .stats-bar .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .stats-bar .stat-item .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stats-bar .stat-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 24px; }
+            .content { padding: 20px; }
+            .search-box .filters { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 金融早报历史</h1>
+            <p>查看所有历史金融早报，按日期筛选</p>
+        </div>
+        <div class="content">
+            <div class="search-box">
+                <h2>🔍 筛选早报</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>起始日期</label>
+                        <input type="date" id="startDate" onchange="filterNews()">
+                    </div>
+                    <div class="filter-group">
+                        <label>结束日期</label>
+                        <input type="date" id="endDate" onchange="filterNews()">
+                    </div>
+                    <div class="filter-group">
+                        <label>时间段</label>
+                        <select id="periodFilter" onchange="filterNews()">
+                            <option value="all">全部</option>
+                            <option value="morning">早间</option>
+                            <option value="evening">晚间</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>排序方式</label>
+                        <select id="sortOrder" onchange="renderNews()">
+                            <option value="newest">最新优先</option>
+                            <option value="oldest">最早优先</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="resetFilters()">🔄 重置筛选</button>
+            </div>
+            
+            <div class="stats-bar">
+                <h2>📈 统计信息</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="label">早报数量</div>
+                        <div class="value" id="totalCount">2</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">本月早报</div>
+                        <div class="value" id="thisMonthCount">2</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">最早日期</div>
+                        <div class="value" id="earliestDate">2026-03-01</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">最新日期</div>
+                        <div class="value" id="latestDate">2026-03-01</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="newsList" class="news-list">
+                <!-- 早报列表将通过JS动态加载 -->
+                <div class="news-item">
+                    <div class="date">2026-03-01</div>
+                    <div class="period">早间</div>
+                    <div class="stats">
+                        <div class="stat">新闻：<span>5</span>条</div>
+                        <div class="stat">领域：<span>4</span>个</div>
+                    </div>
+                    <a href="2026-03-01-早间.html" class="view-btn">📖 查看早报</a>
+                </div>
+                <div class="news-item">
+                    <div class="date">2026-03-01</div>
+                    <div class="period">早间</div>
+                    <div class="stats">
+                        <div class="stat">新闻：<span>5</span>条</div>
+                        <div class="stat">领域：<span>4</span>个</div>
+                    </div>
+                    <a href="2026-03-01-晚间.html" class="view-btn">📖 查看早报</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 早报数据（实际应该从配置文件或API读取）
+        const newsData = [
+            {
+                date: '2026-03-01',
+                period: '早间',
+                newsCount: 5,
+                categoryCount: 4,
+                file: '2026-03-01-早间.html',
+                timestamp: new Date('2026-03-01 10:10:00')
+            },
+            {
+                date: '2026-03-01',
+                period: '晚间',
+                newsCount: 5,
+                categoryCount: 4,
+                file: '2026-03-01-晚间.html',
+                timestamp: new Date('2026-03-01 17:30:00')
+            }
+        ];
+
+        // 筛选早报
+        function filterNews() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const period = document.getElementById('periodFilter').value;
+            
+            let filtered = newsData;
+            
+            // 按日期筛选
+            if (startDate) {
+                filtered = filtered.filter(news => news.timestamp >= new Date(startDate));
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                filtered = filtered.filter(news => news.timestamp <= end);
+            }
+            
+            // 按时间段筛选
+            if (period !== 'all') {
+                filtered = filtered.filter(news => news.period === period);
+            }
+            
+            renderNews(filtered);
+            updateStats(filtered);
+        }
+
+        // 渲染早报列表
+        function renderNews(data = newsData) {
+            const container = document.getElementById('newsList');
+            
+            // 排序
+            const sortOrder = document.getElementById('sortOrder').value;
+            const sorted = [...data].sort((a, b) => {
+                if (sortOrder === 'newest') {
+                    return b.timestamp - a.timestamp;
+                } else {
+                    return a.timestamp - b.timestamp;
+                }
+            });
+            
+            let html = '';
+            
+            if (sorted.length === 0) {
+                html = '<p style="text-align: center; color: #999; padding: 40px;">暂无符合条件的早报</p>';
+            } else {
+                sorted.forEach((news, index) => {
+                    const periodEmoji = news.period === '早间' ? '🌅' : '🌆';
+                    html += `
+                        <div class="news-item">
+                            <div class="date">${news.date}</div>
+                            <div class="period">${periodEmoji} ${news.period}</div>
+                            <div class="stats">
+                                <div class="stat">新闻：<span>${news.newsCount}</span>条</div>
+                                <div class="stat">领域：<span>${news.categoryCount}</span>个</div>
+                            </div>
+                            <a href="${news.file}" class="view-btn">📖 查看早报</a>
+                        </div>
+                    `;
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // 更新统计信息
+        function updateStats(data = newsData) {
+            document.getElementById('totalCount').textContent = data.length;
+            
+            const thisMonth = new Date().getMonth();
+            const thisMonthNews = data.filter(news => news.timestamp.getMonth() === thisMonth);
+            document.getElementById('thisMonthCount').textContent = thisMonthNews.length;
+            
+            if (data.length > 0) {
+                const dates = data.map(news => news.timestamp);
+                const latest = new Date(Math.max(...dates));
+                const earliest = new Date(Math.min(...dates));
+                
+                document.getElementById('latestDate').textContent = formatDate(earliest);
+                document.getElementById('earliestDate').textContent = formatDate(latest);
+            }
+        }
+
+        // 格式化日期
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // 重置筛选
+        function resetFilters() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('periodFilter').value = 'all';
+            document.getElementById('sortOrder').value = 'newest';
+            renderNews(newsData);
+            updateStats(newsData);
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            renderNews(newsData);
+            updateStats(newsData);
+        };
+    </script>
+</body>
+</html>
